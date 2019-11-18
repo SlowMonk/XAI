@@ -9,21 +9,25 @@
 
 - [ ] Implement 'DeconvNet'
 
+- [X] Implement 'Saliency'
 - [ ] Implement 'Vanilla Saliency'
 
-- [x] Implement 'Vanila Backpropogation(VBP)'
+- [ ] Implement 'Vanila Backpropogation(VBP)'
 - [ ] Implement 'Input x Backpropogation'
 - [ ] Implement 'LRP'
 - [ ] Implement 'DeepLIFT'
-- [x] Implement 'Guided Backpropogation(GB)'
-- [x] Implement 'Integraded Gradient(IG)'
+- [ ] Implement 'Guided Backpropogation(GB)'
 
 - [x] Implement 'CAM'
 - [x] Implement 'GradCam'
 - [ ] Implement 'GradCam++'
-- [ ] Implement 'SmoothGrad'
-- [ ] Implement 'VarGrad'
-- [ ] Implement 'Integrated Gradients'
+- [ ] Implement 'Guided Grad Cam'
+- [X] Implement 'SmoothGrad'
+- [X] Implement 'VarGrad'
+- [X] Implement 'Gradient * Input'
+- [X] Implement 'Integrated Gradients'
+- [ ] Implement 'Guided Gradients'
+
 
 - [ ] Implement 'LIME'
 - [ ] Implement 'Blackbox perturbation'
