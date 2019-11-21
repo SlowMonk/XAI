@@ -46,6 +46,9 @@
 * Deep CLosed-Form Subspace Clustering
 * NL-LinkNet: Toward Lighter but More Accurate Road Extraction With Non-Local Operations
 * [Why are Saliency Maps Noisy? Cause of and Solution to Noisy Saliency Maps 2019](https://arxiv.org/pdf/1902.04893.pdf)
+* [Grid Saliency for Context Explanations of Semantic Segmentation-2019](https://arxiv.org/pdf/1907.13054.pdf)
+* [Visual Understanding of Multiple Attributes Learning Model of X-Ray Scattering Images](http://xai.unist.ac.kr/workshop/2019/)
+  
   
 
 * [SmoothGrad-2017](https://arxiv.org/pdf/1706.03825.pdf)
