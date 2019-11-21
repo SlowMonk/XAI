@@ -50,9 +50,8 @@
   
 
 ##### Gradient methods:
-
-* [Saliency(Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps 2014 Apr)]
-  (https://arxiv.org/abs/1312.6034)
+[I'm an inline-style link with title](https://www.google.com "Google's Homepage")
+* [Saliency(Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps 2014 Apr)](https://arxiv.org/abs/1312.6034)
 * Guided backpropogation(Striving for Simplicity: The All Convolutional Net 2015)
   https://arxiv.org/abs/1412.6806
 * Grad cam(Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization 2017) 
