@@ -38,11 +38,11 @@ for epoch in range(100):
             print('Epoch [%d/%d], Iter [%d/%d], Loss: %.4f'
                   % (epoch + 1, 10, i + 1, len(train_loader), loss.item()))
 
-        avg_epoch_loss = epoch_loss / len(train_loader)
-        print("Epoch: %d, Avg Loss: %.4f" % (epoch + 1, avg_epoch_loss))
-        if avg_epoch_loss < min_loss:
-            print("Renew model")
-            min_loss = avg_epoch_loss
-            torch.save(cnn.state_dict(), 'model/cnn.pth')
-    print("----------------------------------")
+    avg_epoch_loss = epoch_loss / len(train_loader)
+    print("Epoch: %d, Avg Loss: %.4f" % (epoch + 1, avg_epoch_loss))
+    if avg_epoch_loss < min_loss:
+        print("Renew model")
+        min_loss = avg_epoch_loss
+        torch.save(cnn.state_dict(), 'model/cnn.pth')
+print("----------------------------------")
 print("finish trainning")
