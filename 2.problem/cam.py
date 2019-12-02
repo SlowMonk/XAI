@@ -21,7 +21,8 @@ device = torch.device("cuda" if is_cuda else "cpu")
 net = model.load_net().to(device)
 finalconv_name = 'conv'
 
-cam = CAMS(net)
+cam = CAMS(net,device)
+cam.generate_image(train_loader)
 
 #hook
 #feature_blobs = []
