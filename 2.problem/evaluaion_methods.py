@@ -19,16 +19,12 @@ def adjust_image(dataloader,saliency_map, ratio, eval_method):
     data = dataloader.dataset.data
     img = saliency_map
     img_size = data.shape[1:] # cifar10,(3,128,128)
-    print('img_size->{}'.format(img_size))
     nb_pixel = np.prod(img_size)
-    print('img_size:{} , nb_pizel:{}'.format(img_size,nb_pixel))
     threshold = int(nb_pixel  * (1-ratio))
 
     #rank indice
     re_sal_maps = img.reshape(img.shape[0],-1)
     indice = re_sal_maps.argsort().argsort()
-    print("re_sal_maps->{}  :: indice-<{}".format(re_sal_maps.shape,indice.shape))
-    print("threshold->{}".format(threshold))
 
     if eval_method == "ROAR":
         mask = indice < threshold

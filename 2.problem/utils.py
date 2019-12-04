@@ -7,6 +7,9 @@ import torchvision.transforms as transforms
 import torch
 import torchvision
 import torchvision.transforms as transforms
+import numpy as np
+from PIL import Image
+import cv2
 
 transform = transforms.Compose([
     transforms.Resize(128),
@@ -33,3 +36,29 @@ def load_data_cifar10(batch_size=64,test=False):
     train_loader = torch.utils.data.DataLoader(train_dset, batch_size=1, shuffle=True)
     print("LOAD DATA, %d" % (len(train_loader)))
     return train_loader
+
+
+def rescale_image(images):
+    '''
+    MinMax scaling
+
+    Args:
+        images : images (batch_size, C, H, W)
+    '''
+    mins = np.min(images, axis=(1,2,3)) # (batch_size, 1)
+    mins = mins.reshape(mins.shape + (1,1,1,)) # (batch_size, 1, 1, 1)
+    maxs = np.max(images, axis=(1,2,3))
+    maxs = maxs.reshape(maxs.shape + (1,1,1,))
+
+    images = (images - mins)/(maxs - mins)
+    images = images.transpose(0,2,3,1)
+
+    return images
+
+
+   # resize to input image size
+def resize_image(cam, origin_image):
+    original_cam =cam
+    #img = np.uint8(Image.fromarray(cam).resize((origin_image.shape[:2]), Image.ANTIALIAS)) / 255
+    img = np.expand_dims(cam,axis=2)
+    return img

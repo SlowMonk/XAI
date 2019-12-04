@@ -32,12 +32,9 @@ print("trainloader size->{}".format(train_loader.dataset.data.shape))
 cam = CAMS(net,device)
 cam.save_saliency_map(train_loader,save_dir)
 
-
-
-
 #adjust image
 hf = h5py.File(f'./datab/file.hdf5','r')
-cifar10 = h5py.File(f'./datab/cifar10_GC_steps50_ckp5_sample0.1.hdf5','r')
+cifar10 = h5py.File(f'./datab/cifar10_GB-GC_steps50_ckp5_sample0.1.hdf5','r')
 
 sal_maps = np.array(hf['saliencys'])
 #sal_cifar10 = np.array(cifar10['saliencys'])

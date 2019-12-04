@@ -11,6 +11,7 @@ from PIL import Image
 from collections import OrderedDict
 from functools import partial
 from torch.nn import functional as F
+from utils import *
 
 
 class CAMS(object):
@@ -44,13 +45,11 @@ class CAMS(object):
 
     def generate_image(self, img, i):
         #print("=================generate image=============================")
+        #print("img_size->{} dtype->{}".format(img.shape,img.dtype))
+        img = Variable(img, requires_grad=True)
 
-        #i = 0
-        #for img, target in dataloader:
-        #print('img_shape->{} target_shape->{} img_shape[0]->{}'.format(img.shape ,target.shape, img[0].shape))
-        image_PIL = transforms.ToPILImage()(img[0])
-        image_PIL.save('result/test{}.jpg'.format(i))
-        #print("save file")
+        #image_PIL = transforms.ToPILImage()(img[0])
+        #image_PIL.save('result/test{}.jpg'.format(i))
 
         self.net._modules.get(self.finalconv_name).register_forward_hook(self.hook_feature)
 
@@ -58,51 +57,31 @@ class CAMS(object):
         logit , _ = self.net(img_tensor)
         h_x = F.softmax(logit, dim=1).data.squeeze()
 
+
         probs, idx = h_x.sort(0, True)
-        #print('preds란->{} and idx란->{}'.format(probs, idx))
-
-        #probs, idx = h_x.max(1)
-
-        #probs = probs.max(1)
-        #idx = probs.max(1)
-        #print(img.shape[-2:])
         output_cam = self.returnCAM(self.feature_blobs[0],self.weight_softmax,[idx[0].item()])
-        img = cv2.imread('result/test{}.jpg'.format(i))
-        height, width, _ = img.shape
+        height, width = 32,32
         heatmap = cv2.applyColorMap(cv2.resize(output_cam[0], (width, height)), cv2.COLORMAP_JET)
-        result = heatmap * 0.3 + img * 0.5
-        #cv2.imwrite('result/CAM{}.jpg'.format(i), result)
-        #print("1.generate image -> result shape==", result.shape)
 
-        img=np.transpose(img,axes=(2,0,1))
-        #print('2.oridingal image->{}'.format(img.shape))
+        #ndarray change
+        #img = cv2.imread('result/test{}.jpg'.format(i))
 
-        #print("3.original 이미지 사이즈:{}".format(result.shape[-2:]))
-        # resize to input image size
-        def resize_image(gradcam, origin_image):
-            #print("imagefrom_array->{}".format(Image.fromarray(gradcam)))
-            #img = np.uint8(Image.fromarray(gradcam).resize(((32,32)), Image.ANTIALIAS)) / 255
-            dim = (32,32)
-            #img = cv2.resize(gradcam, dim, interpolation=cv2.INTER_AREA) /255
-            img =  cv2.resize(gradcam, dim)
-            #print('img_size->', img.shape)
-
-            #print('imge_shape_>{}'.format(img.shape))
-            #img = np.expand_dims(img, axis=2)
-            #print('imge_shape2_>{}'.format(img.shape))
+        img =img.detach().numpy()
+        img2 = img[0]
+        img2 = np.transpose(img2,axes=(1,2,0))
+        img2=cv2.resize(img2,(32,32))
+        #img2 =  img[0]
+        #np.transpose(img,axes=(2,0,1))
 
 
-            return img
-        cams = result
-        cams = np.array(list(map(resize_image, result, img)))
-        #print("4.리사이즈 이미지->{}".format(cams.shape))
+        modify_image = heatmap * 0.3 + img2 * 0.5
 
-        #i +=1
-        #if i == 10: break
-
-        return cams , probs.detach().cpu().numpy(), idx.detach().cpu().numpy()
+        camsresult = np.array(list(map(resize_image, modify_image, img2)))
+        return camsresult, probs.detach().cpu().numpy(), idx.detach().cpu().numpy()
 
     def save_saliency_map(self,dataloader,save_dir):
+        dataloadertemp = dataloader
+        print("dataloader.shape->{}".format(dataloader.dataset.data.shape))
         img_size= dataloader.dataset.data.shape[1:]
         dim = len(img_size)
         if dim ==2:
@@ -111,24 +90,17 @@ class CAMS(object):
         sal_maps = np.array([], dtype=np.float32).reshape((0,) + img_size)
         probs = np.array([], dtype=np.float32)
         preds = np.array([], dtype=np.uint8)
-        #print("9.sal_maps->{} , probs->{}, preds->{}".format(sal_maps.shape,probs.shape,preds.shape))
-
         for idx, (img, target) in enumerate(dataloader):
 
             sal_maps_b, probs_b, preds_b = self.generate_image(img, idx)
-            sal_maps_b = np.transpose(sal_maps_b, axes=(1, 2, 0))
+            sal_maps_b = np.transpose(sal_maps_b, axes=(3,0, 1, 2))
 
-            #print('6.sam_maps->{} sal_maps_b->{}'.format(sal_maps.shape,sal_maps_b.shape))
-            sal_maps = np.append(sal_maps,sal_maps_b)
-            #print('7.sal_maps->{}'.format(sal_maps.shape))
+            sal_maps = np.vstack([sal_maps,sal_maps_b])
             probs = np.append(probs, probs_b)
             preds = np.append(preds,preds_b)
+            #if idx ==2: break
             if idx % 100 == 0:
-                print("idx->{} sal_maps->{}".format(idx,sal_maps.shape))
-                # print("4.dataloader 사이즈{}".format(dataloader.dataset.data.shape))
-                # print("=================adjust image=============================")
-                # print("5.idx->{} img_size->{}, target->{}".format(idx, img.shape, target))
-                # print("================================================================")
+                print("idx->{} sal_maps->{}, probs->{} , preds->{}".format(idx,sal_maps.shape,probs.shape,preds.shape))
         print("result::{}",sal_maps.size)
         name = "file"
         save_dir += "/" + name +  ".hdf5"
