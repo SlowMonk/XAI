@@ -26,14 +26,14 @@ def load_data_stl10(batch_size=64, test=False):
     print("LOAD DATA, %d" % (len(train_loader)))
     return train_loader
 
-def load_data_cifar10(batch_size=64,test=False):
+def load_data_cifar10(batch_size=128,test=False):
     if not test:
         train_dset = torchvision.datasets.CIFAR10(root='/mnt/3CE35B99003D727B/input/pytorch/data', train=True,
                                                 download=True, transform=transform)
     else:
         train_dset = torchvision.datasets.CIFAR10(root='/mnt/3CE35B99003D727B/input/pytorch/data', train=False,
                                                download=True, transform=transform)
-    train_loader = torch.utils.data.DataLoader(train_dset, batch_size=1, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(train_dset, batch_size=batch_size, shuffle=True)
     print("LOAD DATA, %d" % (len(train_loader)))
     return train_loader
 
@@ -59,6 +59,7 @@ def rescale_image(images):
    # resize to input image size
 def resize_image(cam, origin_image):
     original_cam =cam
-    #img = np.uint8(Image.fromarray(cam).resize((origin_image.shape[:2]), Image.ANTIALIAS)) / 255
+    original_image= origin_image
+    img = np.uint8(Image.fromarray(cam).resize((origin_image.shape[:2]), Image.ANTIALIAS)) / 255
     img = np.expand_dims(cam,axis=2)
     return img

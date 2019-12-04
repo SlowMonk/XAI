@@ -57,11 +57,13 @@ class CAMS(object):
         logit , _ = self.net(img_tensor)
         h_x = F.softmax(logit, dim=1).data.squeeze()
 
-
+        weight_softmaxtemp = self.weight_softmax
+        feature_blobstemp = self.feature_blobs
         probs, idx = h_x.sort(0, True)
         output_cam = self.returnCAM(self.feature_blobs[0],self.weight_softmax,[idx[0].item()])
         height, width = 32,32
         heatmap = cv2.applyColorMap(cv2.resize(output_cam[0], (width, height)), cv2.COLORMAP_JET)
+        heatmap2 = cv2.resize(output_cam[0],(width,height))
 
         #ndarray change
         #img = cv2.imread('result/test{}.jpg'.format(i))
@@ -74,11 +76,11 @@ class CAMS(object):
         #np.transpose(img,axes=(2,0,1))
 
 
-        modify_image = heatmap * 0.3 + img2 * 0.5
+        #modify_image = heatmap * 0.3 + img2 * 0.5
 
-        camsresult = np.array(list(map(resize_image, modify_image, img2)))
+        camsresult = np.array(list(map(resize_image, heatmap, img2)))
         return camsresult, probs.detach().cpu().numpy(), idx.detach().cpu().numpy()
-
+    # TODO : check the memory problem stacking the saliency map.
     def save_saliency_map(self,dataloader,save_dir):
         dataloadertemp = dataloader
         print("dataloader.shape->{}".format(dataloader.dataset.data.shape))
@@ -91,6 +93,7 @@ class CAMS(object):
         probs = np.array([], dtype=np.float32)
         preds = np.array([], dtype=np.uint8)
         for idx, (img, target) in enumerate(dataloader):
+
 
             sal_maps_b, probs_b, preds_b = self.generate_image(img, idx)
             sal_maps_b = np.transpose(sal_maps_b, axes=(3,0, 1, 2))

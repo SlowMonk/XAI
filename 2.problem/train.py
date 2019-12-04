@@ -4,14 +4,15 @@ import torch.nn as nn
 from torch.autograd import Variable
 import model
 import utils
-
+# TODO : trainning is not working  test accuarcy
+# TODO : batch size check
 print("=============train.py=============")
 
 if not os.path.exists('./model'):
     os.mkdir('model/')
 
-train_loader = utils.load_data_cifar10(batch_size=128,test=False)
-test_loader = utils.load_data_cifar10(batch_size=100, test=True)
+train_loader = utils.load_data_cifar10(batch_size=64,test=False)
+test_loader = utils.load_data_cifar10(batch_size=64, test=True)
 is_cuda = torch.cuda.is_available()
 print('cuda available->',is_cuda)
 
@@ -32,6 +33,7 @@ def train(epoch):
     total = 0
     correct = 0
     for i , (images, targets) in enumerate(train_loader):
+        #print("i->{} , images->{} , targets->{}".format(i,images.shape,targets.shape))
         images, targets = images.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs, _ = net(images)

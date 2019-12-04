@@ -18,8 +18,8 @@ if not os.path.exists('./result'):
 
 classes = ('airplance', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey',
         'ship', 'truck')
-train_loader = utils.load_data_cifar10(batch_size=1,test=False)
-test_loader = utils.load_data_cifar10(batch_size=1, test=True)
+train_loader = utils.load_data_cifar10(batch_size=64,test=False)
+test_loader = utils.load_data_cifar10(batch_size=64, test=True)
 is_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if is_cuda else "cpu")
 net = model.load_net().to(device)
@@ -35,6 +35,7 @@ cam.save_saliency_map(train_loader,save_dir)
 #adjust image
 hf = h5py.File(f'./datab/file.hdf5','r')
 cifar10 = h5py.File(f'./datab/cifar10_GB-GC_steps50_ckp5_sample0.1.hdf5','r')
+
 
 sal_maps = np.array(hf['saliencys'])
 #sal_cifar10 = np.array(cifar10['saliencys'])
