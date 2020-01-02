@@ -9,13 +9,16 @@ import torchvision
 import torchvision.transforms as transforms
 import numpy as np
 from PIL import Image
+import torch.nn as nn
 import cv2
-from imports import *
 
-transform = transforms.Compose([
-    #transforms.Resize(32),
+import h5py
+from imports import *
+transform= transforms.Compose([
+    transforms.Resize(32),
     transforms.ToTensor(),
 ])
+
 
 transform_mnist = transforms.Compose([
     transforms.Resize(28),
@@ -40,6 +43,7 @@ def load_data_cifar10(batch_size=128,test=False):
         train_dset = torchvision.datasets.CIFAR10(root='/mnt/3CE35B99003D727B/input/pytorch/data', train=False,
                                                download=True, transform=transform)
     train_loader = torch.utils.data.DataLoader(train_dset, batch_size=batch_size, shuffle=False)
+    print('here')
     print("LOAD DATA, %d" % (len(train_loader)))
     return train_loader
 
@@ -163,14 +167,13 @@ class TRAIN(nn.Module):
             }
             print("saving.............{}_name->{}%".format(acc,'model/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name)))
             torch.save(state,'./checkpoint/{}_adjust_{}.pth'.format(self.source,step))
-            torch.save(self.net.state_dict(), 'model_weights/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name))
+            torch.save(self.net.state_dict(), 'model/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name))
             best_accuracy = acc
 
             save_dir = 'log/' + '{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name)
             print('save_dir->',save_dir)
 
             save_name = save_dir +'.hdf5'
-            print('save_name={}'.format(save_name))
             with h5py.File(save_name, 'w') as hf:
                 hf.create_dataset('acc', data=best_accuracy)
                 hf.create_dataset('step', data=step)
@@ -182,7 +185,7 @@ class TRAIN(nn.Module):
             self.test(i,testloader,step,source)
 def starTest(net,testloader,device,step,source):
     print('startTest')
-    PATH = 'model_weights/{}_adjust_{}_{}.pth'.format(source,step,net.name)
+    PATH = 'model/mnist/{}_adjust_{}_{}.pth'.format(source,step,net.name)
     print(PATH)
     net.load_state_dict(torch.load(PATH))
     total = 0
