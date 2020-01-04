@@ -2,5 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/gits/WhiteBox-Part1" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/gits/ff-attention" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/gits/gradcam_plus_plus-pytorch" vcs="Git" />
   </component>
 </project>
