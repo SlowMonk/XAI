@@ -163,11 +163,13 @@ class TRAIN(nn.Module):
             }
             print("saving.............{}_name->{}%".format(acc,'model/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name)))
             torch.save(state,'./checkpoint/{}_adjust_{}.pth'.format(self.source,step))
-            torch.save(self.net.state_dict(), 'model_weights/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name))
+            torch.save(self.net.state_dict(), '/home/jake/Gits/AI college/XAI/2.problem/model_weights/{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name))
             best_accuracy = acc
 
-            save_dir = 'log/' + '{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name)
+            save_dir = '/home/jake/Gits/AI college/XAI/2.problem/log/' + '{}_adjust_{}_{}.pth'.format(self.source,step,self.net.name)
             print('save_dir->',save_dir)
+            if os.path.exists(save_dir):
+                os.remove(save_dir)
 
             save_name = save_dir +'.hdf5'
             print('save_name={}'.format(save_name))
@@ -182,7 +184,7 @@ class TRAIN(nn.Module):
             self.test(i,testloader,step,source)
 def starTest(net,testloader,device,step,source):
     print('startTest')
-    PATH = 'model_weights/{}_adjust_{}_{}.pth'.format(source,step,net.name)
+    PATH = '/home/jake/Gits/AI college/XAI/2.problem/model_weights/{}_adjust_{}_{}.pth'.format(source,step,net.name)
     print(PATH)
     net.load_state_dict(torch.load(PATH))
     total = 0

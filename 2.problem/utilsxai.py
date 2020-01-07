@@ -84,7 +84,46 @@ def resize_image(cam, origin_image):
     img = np.expand_dims(cam,axis=2)
     return img
 
+def visualize(origin, img, img2, img3, img4, img5):
+    fig = plt.figure(figsize=(10, 5))
 
+    plt.subplot(1, num_images, 1)
+    plt.title('origin image')
+    origin = origin.squeeze()
+    origin = (origin).permute(1, 2, 0)
+    plt.imshow(origin)
+
+    plt.subplot(1, num_images, 2)
+    plt.title('heatmap')
+    img = torch.tensor(img)
+    img = (img).permute(1, 2, 0)
+    plt.imshow(img)
+
+    plt.subplot(1, num_images, 3)
+    plt.title('heatmap_attention')
+    img2 = torch.tensor(img2)
+    img2 = (img2).permute(1, 2, 0)
+    plt.imshow(img2)
+
+    plt.subplot(1, num_images, 4)
+    plt.title('resnet')
+    img3 = torch.tensor(img3)
+    img3 = (img3).permute(1, 2, 0)
+    plt.imshow(img3)
+
+    plt.subplot(1, num_images, 5)
+    plt.title('heatmap_attention')
+    img4 = torch.tensor(img4)
+    img4 = (img4).permute(1, 2, 0)
+    plt.imshow(img4)
+
+    plt.subplot(1, num_images, 6)
+    plt.title('resnet')
+    img5 = torch.tensor(img5)
+    img5 = (img5).permute(1, 2, 0)
+    plt.imshow(img5)
+
+    plt.show()
 
 
 class TRAIN(nn.Module):
@@ -209,3 +248,9 @@ def starTest(net,testloader,device,step,source):
         setparr.append(step / 10)
         print("test accuracy:{} %% ".format(100. * correct / total))
     return accarr,setparr
+
+
+num_images = 6
+
+
+
