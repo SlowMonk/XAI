@@ -369,10 +369,10 @@ def make_masks(trainloader, cam_dict):
             heatmap = torch.tensor(heatmap.detach().cpu()).permute(1,2,0)
             #heatmap = heatmap.per
             #masks.append(np.array(heatmap.detach().cpu()))
-            masks.append(np.array(heatmap))
+            masks.append(np.array(result))
             #if idx==10: return masks
         if idx % 10000 == 0: print(idx, '/50000', '%')
-        #if idx==15: break
+        if idx==200: break
     return masks
 
 
