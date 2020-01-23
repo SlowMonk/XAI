@@ -2,8 +2,9 @@ from imports import *
 import matplotlib.pyplot as plt
 import torch
 
+
 class CAM(object):
-    def __init__(self, net,trainloader,testloader,device,methods):
+    def __init__(self, net, trainloader, testloader, device, methods):
         print('CAM')
         self.net = net
         self.feature_blobs = []
@@ -16,21 +17,21 @@ class CAM(object):
         self.i = 0
         self.dset = ""
         self.methods = methods
-        self.masks=[]
+        self.masks = []
         self.trainloader = trainloader
         self.testloader = testloader
         self.final_conv = 'conv'
         self.net._modules.get(self.final_conv).register_forward_hook(self.hook_feature)
-        self.dataname = 'CAM_'+ methods + '.h5py'
-        self.sal_maps_hf=''
+        self.dataname = 'CAM_' + methods + '.h5py'
+        self.sal_maps_hf = ''
         self.path = '/home/jake/Gits/AI college/XAI/2.problem/'
-        #self.saliency_maps  = ''
-    #feature_blobs = []
-    def hook_feature(self,module, input, output):
+        # self.saliency_maps  = ''
+
+    # feature_blobs = []
+    def hook_feature(self, module, input, output):
         self.feature_blobs.append(output.cpu().data.numpy())
 
-
-    def returnCAM(self,feature_conv, weight_softmax, class_idx):
+    def returnCAM(self, feature_conv, weight_softmax, class_idx):
         # generate the class activation maps upsample to 256x256
         size_upsample = (28, 28)
         bz, nc, h, w = feature_conv.shape
@@ -44,10 +45,10 @@ class CAM(object):
             output_cam.append(cv2.resize(cam_img, size_upsample))
         return output_cam
 
-        #return output_cam
+        # return output_cam
         return cv2.resize(cam_img, size_upsample)
 
-    def get_cam(self,img):
+    def get_cam(self, img):
 
         # print('get_cam')
         self.net.zero_grad()
@@ -63,28 +64,30 @@ class CAM(object):
 
         h_x = F.softmax(logit, dim=1).data.squeeze()
         probs, idx = h_x.sort(0, True)
-        #print(self.feature_blobs[0])
-        #print('idx->',idx)
+        # print(self.feature_blobs[0])
+        # print('idx->',idx)
         CAMs = self.returnCAM(self.feature_blobs[0], weight_softmax, [idx[0].item()])
-        #transToPil = transforms.ToPILImage()
-        #transToTensor = transforms.ToTensor()
+        # transToPil = transforms.ToPILImage()
+        # transToTensor = transforms.ToTensor()
         height, width = img.shape[2:]
 
         CAM = cv2.resize(CAMs[0], (width, height))
         heatmap = cv2.applyColorMap(CAM, cv2.COLORMAP_JET)
         result = (x * CAM)
         return CAM, result
+
     def get_mask(self):
         self.net._modules.get(self.final_conv).register_forward_hook(self.hook_feature)
-        for idx,(img,target) in enumerate(self.trainloader):
-            CAM,result = self.get_cam(img)
+        print('hook_feature->{}'.format(torch.tensor(self.hook_feature()).shape))
+        for idx, (img, target) in enumerate(self.trainloader):
+            CAM, result = self.get_cam(img)
             self.masks.append(CAM)
-            if idx%10000 ==0: print(idx,'/',self.trainloader.dataset.data.shape[0],'%')
+            if idx % 10000 == 0: print(idx, '/', self.trainloader.dataset.data.shape[0], '%')
 
     def main(self):
         self.get_mask()
 
-    def show_images(self, limit,ratio):
+    def show_images(self, limit, ratio):
         plt.rcParams['figure.figsize'] = [20, 10]
         for idxr, r in enumerate(ratio):
             print('Ratio-[{}%] removed'.format(r))
@@ -97,53 +100,54 @@ class CAM(object):
                 if idx == limit: break
             plt.show()
 
-
     def save_saliency_maps(self):
-        if len(self.masks) ==0:
+        if len(self.masks) == 0:
             self.get_mask()
-        #print('./datab/'+self.dataname,len(self.masks))
-        paths = '/home/jake/Gits/AI college/XAI/2.problem/attribution/attention/datab/'+self.dataname
-        #print('path->',paths)
+        # print('./datab/'+self.dataname,len(self.masks))
+        paths = '/home/jake/Gits/AI college/XAI/2.problem/attribution/attention/datab/' + self.dataname
+        # print('path->',paths)
         with h5py.File(paths, 'w') as hf:
             hf.create_dataset('saliencys', data=self.masks)
+
     def get_saliency_maps(self):
-        #print('get_saliency_maps')
+        # print('get_saliency_maps')
         try:
-            #print(self.path +'datab/'+self.datapath)
-            hf=h5py.File(f'/home/jake/Gits/AI college/XAI/2.problem/attribution/attention/datab/'+self.dataname,'r')
-            #print('hf->',np.array(hf['saliencys']))
-            self.sal_maps_hf= np.array(hf['saliencys'])
+            # print(self.path +'datab/'+self.datapath)
+            hf = h5py.File(f'/home/jake/Gits/AI college/XAI/2.problem/attribution/attention/datab/' + self.dataname,
+                           'r')
+            # print('hf->',np.array(hf['saliencys']))
+            self.sal_maps_hf = np.array(hf['saliencys'])
         except:
-            #print('no_file')
+            # print('no_file')
             self.save_saliency_maps()
 
-    def adjust_image(self,ratio):
-        #print('mask',self.masks)
+    def adjust_image(self, ratio):
+        # print('mask',self.masks)
         self.get_saliency_maps()
 
         data = self.trainloader.dataset.data
-        #print('saliency_maps->',self.sal_maps_hf)
-        #print('data-->',data)
-        self.trainloader.dataset.data  = torch.tensor(self.sal_maps_hf) * data
+        # print('saliency_maps->',self.sal_maps_hf)
+        # print('data-->',data)
+        self.trainloader.dataset.data = torch.tensor(self.sal_maps_hf) * data
         data = self.trainloader.dataset.data
-        img_size= data.shape[1:]
-        #print(data.shape[1:])
+        img_size = data.shape[1:]
+        # print(data.shape[1:])
         nb_pixel = np.prod(img_size)
-        #print('nb_pixel->{}'.format(nb_pixel))
-        threshold= int(nb_pixel * (1-ratio))
-        #print('threshold->{}'.format(threshold))
+        # print('nb_pixel->{}'.format(nb_pixel))
+        threshold = int(nb_pixel * (1 - ratio))
+        # print('threshold->{}'.format(threshold))
 
-        re_sal_maps = self.sal_maps_hf.reshape(self.sal_maps_hf.shape[0],-1)
-        #print('re_sal_maps->',re_sal_maps.shape)
+        re_sal_maps = self.sal_maps_hf.reshape(self.sal_maps_hf.shape[0], -1)
+        # print('re_sal_maps->',re_sal_maps.shape)
         indice = re_sal_maps.argsort().argsort()
-        #print()
-        #print('indice->',indice)
+        # print()
+        # print('indice->',indice)
         mask = indice < threshold
         data = self.trainloader.dataset.data
         mask = mask.reshape(data.shape)
-        #print(mask.shape,data.shape )
+        # print(mask.shape,data.shape )
         self.trainloader.dataset.data = data * torch.tensor(mask)
-        #print( self.trainloader.dataset.data.shape)
+        # print( self.trainloader.dataset.data.shape)
         return self.trainloader
 
     def generate_image(self, img, i):
@@ -152,7 +156,7 @@ class CAM(object):
 
         self.net.modules.get(self.finalconv_name).register_forward_hook(self.hook_feature)
 
-        #print('feature_blobs->{} img.shape->{}'.format(self.feature_blobs,img.shape))
+        # print('feature_blobs->{} img.shape->{}'.format(self.feature_blobs,img.shape))
 
         img_tensor = img.to(self.device)
         logit, _ = self.net(img_tensor)
@@ -181,40 +185,40 @@ class CAM(object):
         # result=zip(camsresult,heatmap,probs.detach().cpu().numpy(), idx.detach().cpu().numpy())
 
         return camsresult, probs.detach().cpu().numpy(), idx.detach().cpu().numpy()
-    def save_saliency_map(self,dataloader,save_dir):
+
+    def save_saliency_map(self, dataloader, save_dir):
         i = 0
-        #print("==============save_saliency_map============")
+        # print("==============save_saliency_map============")
         dataloadertemp = dataloader
-        img_size= dataloader.dataset.data.shape[1:]
+        img_size = dataloader.dataset.data.shape[1:]
         dim = len(img_size)
-        if dim ==2:
-            img_size = img_size +(3,)
+        if dim == 2:
+            img_size = img_size + (3,)
 
         for idx, (img, target) in enumerate(dataloader):
-            idx +=1
+            idx += 1
 
             if True:
                 try:
                     with h5py.File(self.datapath, 'a') as hf:
-                        #print(hf['saliencys'].shape[0])
+                        # print(hf['saliencys'].shape[0])
                         i = hf['saliencys'].shape[0]
-                        #print(idx)
+                        # print(idx)
                         i_temp = i + 1
-                        if i_temp==idx:
+                        if i_temp == idx:
 
                             sal_maps_b, probs_b, preds_b = self.generate_image(img, idx)
-                            sal_maps_b = np.transpose(sal_maps_b, axes=(3,0, 1, 2))
+                            sal_maps_b = np.transpose(sal_maps_b, axes=(3, 0, 1, 2))
 
-
-                            if i%500==0:
-                                print('appending....original saliency shape->{} {}/50000%'.format(hf["saliencys"].shape,i ))
+                            if i % 500 == 0:
+                                print('appending....original saliency shape->{} {}/50000%'.format(hf["saliencys"].shape,
+                                                                                                  i))
                             dset = hf['saliencys']
                             dset.resize((i + 1,) + img_size)
                             dset[i] = [sal_maps_b]
 
-
                             dprobs = hf['probs']
-                            dprobs.resize((i+1,) + probs_b.shape)
+                            dprobs.resize((i + 1,) + probs_b.shape)
                             dprobs[i] = [probs_b]
 
                             dpreds = hf['preds']
@@ -222,32 +226,36 @@ class CAM(object):
                             dpreds[i] = [preds_b]
 
                             i += 1
-                            del i,i_temp,sal_maps_b,preds_b,dset,dprobs,dpreds
+                            del i, i_temp, sal_maps_b, preds_b, dset, dprobs, dpreds
                             gc.collect()
 
                             hf.flush()
                             hf.close()
                 except Exception as e:
-                    print('error',e)
+                    print('error', e)
 
                     sal_maps_b, probs_b, preds_b = self.generate_image(img, 0)
-                    #with  self.generate_image(img, idx) as result:
+                    # with  self.generate_image(img, idx) as result:
                     #    sal_maps_b, heat_map_b, probs_b, preds_b = result
                     sal_maps_b = np.transpose(sal_maps_b, axes=(3, 0, 1, 2))
 
                     print("writing......".format(sal_maps_b.shape))
-                    print(sal_maps_b.shape,img_size,probs_b.shape,preds_b.shape)
+                    print(sal_maps_b.shape, img_size, probs_b.shape, preds_b.shape)
                     probs_b = np.array([], dtype=np.float32).reshape((0,) + probs_b.shape)
                     preds_b = np.array([], dtype=np.uint8).reshape((0,) + preds_b.shape)
-                    print(probs_b.shape,preds_b.shape,probs_b.shape[1:],preds_b.shape[1:])
+                    print(probs_b.shape, preds_b.shape, probs_b.shape[1:], preds_b.shape[1:])
                     with h5py.File(self.datapath, 'w') as hf:
-                        hf.create_dataset('saliencys', data=sal_maps_b,maxshape=(None,) + img_size,chunks=(1,) + img_size)
-                        hf.create_dataset('probs', data=probs_b,maxshape=(None,) + probs_b.shape[1:],chunks=(1,) + probs_b.shape[1:])
-                        hf.create_dataset('preds', data=preds_b,maxshape=(None,) + preds_b.shape[1:],chunks=(1,)+ preds_b.shape[1:])
+                        hf.create_dataset('saliencys', data=sal_maps_b, maxshape=(None,) + img_size,
+                                          chunks=(1,) + img_size)
+                        hf.create_dataset('probs', data=probs_b, maxshape=(None,) + probs_b.shape[1:],
+                                          chunks=(1,) + probs_b.shape[1:])
+                        hf.create_dataset('preds', data=preds_b, maxshape=(None,) + preds_b.shape[1:],
+                                          chunks=(1,) + preds_b.shape[1:])
                         hf.close()
-                        i+=1
+                        i += 1
 
-#@contextmanager
+
+# @contextmanager
 class HDF5Store(object):
 
     def __init__(self, datapath, dataset, shape, dtype=np.float32, compression="gzip", chunk_len=1):

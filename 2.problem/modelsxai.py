@@ -28,12 +28,12 @@ def get_MnistCNN():
 
 def load__MnistCNN():
     net = CNN_mnist()
-    net.load_state_dict(torch.load("/home/jake/Gits/AI college/XAI/2.problem/model_weights/cnn_mnist.pth"))
+    net.load_state_dict(torch.load("/home/jake/Gits/AI college/XAI/2.problem/model_weights/pth/cnn_mnist.pth"))
     return net
 
 def load__Resnet50():
     net = ResNet50()
-    net.load_state_dict(torch.load("/home/jake/Gits/AI college/XAI/2.problem/model_weights/resnet50.pth"))
+    net.load_state_dict(torch.load("/home/jake/Gits/AI college/XAI/2.problem/model_weights/pth/resnet50.pth"))
     return net
 
 def weight_init(m):
